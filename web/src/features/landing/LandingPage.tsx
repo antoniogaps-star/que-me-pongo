@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 /** Enlace estable a la última versión del APK (el workflow lo sube con nombre fijo). */
 const APK_URL =
-  "https://github.com/antoniogaps-star/quemepongo/releases/latest/download/quemepongo.apk";
+  "https://github.com/antoniogaps-star/que-me-pongo/releases/latest/download/quemepongo.apk";
 
 /** La app descargable es solo Android; iPhone y computadora usan el panel web. */
 const isIOS =
@@ -51,7 +51,9 @@ const BENEFICIOS = [
 export function LandingPage() {
   return (
     <div className="landing">
-      <header className="landing-hero">
+      {/* La portada va como fondo, con un velo oscuro encima: sin él, el texto dorado
+          se pierde sobre las zonas claras de la foto. */}
+      <header className="landing-hero landing-hero-foto">
         <div className="landing-brand">
           <img src="/logo-mark.png" alt="¿Qué me pongo?" />
           <h1>¿Qué me pongo?</h1>

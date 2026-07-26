@@ -405,6 +405,29 @@ th {
   padding: 3rem 1.5rem;
 }
 
+/* Portada con foto: el velo oscuro es obligatorio, sin él el texto dorado se pierde
+   sobre las zonas claras de la imagen. */
+.landing-hero-foto {
+  position: relative;
+  background-image: url("/portada.jpg");
+  background-size: cover;
+  background-position: center;
+  isolation: isolate;
+}
+
+.landing-hero-foto::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(11, 11, 12, 0.55) 0%,
+    rgba(11, 11, 12, 0.78) 55%,
+    rgba(11, 11, 12, 0.97) 100%
+  );
+  z-index: -1;
+}
+
 .landing-brand {
   display: flex;
   flex-direction: column;

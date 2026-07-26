@@ -1,7 +1,27 @@
 # Pendiente: revisar el aislamiento en Ágora y Sonrisa
 
-**Estado: AGENDADO. Se corrigen en cuanto "¿Qué me pongo?" quede terminada**
-(decisión de Toño, 26 jul 2026). No se ha tocado nada de esas dos apps todavía.
+**Estado: ✅ RESUELTO (26 jul 2026).** Las tres apps quedaron corregidas y verificadas
+en producción. Esta nota se conserva como registro de lo que pasó y de cómo se comprobó.
+
+| App | Commit del arreglo | Pruebas | Verificado en producción |
+|---|---|---|---|
+| ¿Qué me pongo? | `7c92e8c` | 48 (43 + 5 nuevas) | ✅ |
+| Ágora | `6a522e8` | 58 (49 + 9 nuevas) | ✅ |
+| Sonrisa | `6a265c4` | 44 (34 + 10 nuevas) | ✅ |
+
+**Cómo se verificó sin tocar datos de clientes:** el arreglo trajo una respuesta nueva del
+servidor (`rejected`) que solo existe en la versión corregida. Pedirle al servidor su lista
+de respuestas (`/openapi.json`) confirma que el código nuevo está corriendo, sin crear
+cuentas de prueba ni escribir nada.
+
+**Hallazgos extra por app:**
+- **Ágora** — la numeración de facturas salía de un máximo global: cada empresa saltaba
+  números según lo que facturaran las demás. Problema fiscal, no estético.
+- **Sonrisa** — se podía agendar una cita o escribir en el historial clínico de un paciente
+  de otro consultorio. Ahora se valida que el paciente sea del propio.
+
+**Las apps móviles no requieren reinstalación:** ya ignoran cualquier respuesta de
+sincronización que no conozcan.
 
 ## Qué pasó aquí
 

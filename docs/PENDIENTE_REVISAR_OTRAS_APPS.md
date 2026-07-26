@@ -1,7 +1,7 @@
 # Pendiente: revisar el aislamiento en Ágora y Sonrisa
 
-**Estado: EN PAUSA por decisión de Toño (26 jul 2026).** No se ha tocado nada de esas
-dos apps. Esta nota existe solo para que el asunto no se pierda.
+**Estado: AGENDADO. Se corrigen en cuanto "¿Qué me pongo?" quede terminada**
+(decisión de Toño, 26 jul 2026). No se ha tocado nada de esas dos apps todavía.
 
 ## Qué pasó aquí
 

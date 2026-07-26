@@ -88,29 +88,34 @@ def draw_mark(
             width=int(stroke),
         )
 
-    # ── El gancho: hombros en diagonal + barra inferior ─────
-    # Ancho y bajo, como en el logo original: la barra casi toca los costados del marco.
-    hanger = box * (17 / 512)
-    _thick_line(draw, [(u(126), u(344)), (u(386), u(344))], hanger, ORO)
-    _thick_line(
-        draw,
-        [(u(126), u(344)), (u(256), u(250)), (u(386), u(344))],
-        hanger,
-        ORO,
-    )
+    # El símbolo tiene DOS interrogantes: el gancho colgador es uno (arriba), y otro
+    # grande atraviesa la barra del gancho, que se abre para dejarlo pasar.
+    # Sin marco (ícono del teléfono) el trazo va un pelo más grueso: a 32–48 px los dos
+    # interrogantes se cierran si la línea es muy fina.
+    linea = box * (17 / 512) * (1.0 if frame else 1.12)
 
-    # ── El signo de interrogación: su curva es el cuello del gancho ──
-    # Arco abierto (empieza abajo-izquierda, sube y baja por la derecha) para que se
-    # lea como "?" y no como un simple garfio.
-    curva = _arc_points(u(256), u(178), u(178) - u(126), 165, 415)
-    _thick_line(draw, curva, hanger, ORO)
-    # Bajada del interrogante hasta el vértice del gancho.
-    _thick_line(draw, [(u(256), u(228)), (u(256), u(248))], hanger, ORO)
-    # El punto del interrogante, DENTRO del triángulo del gancho: así el símbolo queda
-    # compacto y el "?" se lee completo sin salirse de la silueta.
+    def _pregunta(cx: float, cy: float, radio: float, tail_y: float) -> None:
+        """Dibuja un '?' sin punto: arco de izquierda→arriba→derecha y cola hacia el centro."""
+        arco = _arc_points(u(cx), u(cy), u(cx + radio) - u(cx), 180, 420)
+        _thick_line(draw, arco, linea, ORO)
+        fin = arco[-1]
+        _thick_line(draw, [fin, (u(cx), u(tail_y))], linea, ORO)
+
+    # ── Los hombros del gancho (diagonales desde el vértice) ──
+    _thick_line(draw, [(u(83), u(333)), (u(256), u(231)), (u(429), u(333))], linea, ORO)
+
+    # ── La barra, partida en dos: el hueco central es por donde pasa el "?" grande ──
+    _thick_line(draw, [(u(83), u(333)), (u(214), u(333))], linea, ORO)
+    _thick_line(draw, [(u(298), u(333)), (u(429), u(333))], linea, ORO)
+
+    # ── Interrogante de arriba: es el colgador del gancho ──
+    _pregunta(256, 145, 42, 224)
+
+    # ── Interrogante grande: cruza la barra y su punto queda debajo ──
+    _pregunta(256, 303, 34, 360)
     punto = box * (13 / 512)
     draw.ellipse(
-        [u(256) - punto, u(312) - punto, u(256) + punto, u(312) + punto], fill=ORO
+        [u(256) - punto, u(392) - punto, u(256) + punto, u(392) + punto], fill=ORO
     )
 
     return img.resize((size, size), Image.LANCZOS)

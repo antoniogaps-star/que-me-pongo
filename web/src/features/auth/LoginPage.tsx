@@ -36,12 +36,12 @@ export function LoginPage() {
         <h1>¿Qué me pongo? · Entrar</h1>
         <p className="slogan">Tu clóset. Tu estilo. Tu mejor versión.</p>
 
-        <label htmlFor="company_slug">Empresa</label>
+        <label htmlFor="company_slug">Tu nombre o apodo</label>
         <input
           id="company_slug"
           value={form.company_slug}
           onChange={(e) => setForm({ ...form, company_slug: e.target.value })}
-          placeholder="El nombre de tu negocio"
+          placeholder="El que pusiste al crear tu cuenta"
           required
         />
 

@@ -1,0 +1,542 @@
+/* Identidad de "¿Qué me pongo?": oro sobre negro, con títulos serif.
+   La app tiene que sentirse como un asesor de imagen caro, no como una hoja de cálculo. */
+
+:root {
+  --oro: #d4b483;
+  --oro-claro: #e8cfa0;
+  --oro-hondo: #b8935c;
+  --negro: #0b0b0c;
+  --carbon: #17161a;
+  --borde: #2a2620;
+  --texto: #ede6da;
+  --texto-suave: #b9ae9c;
+
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--negro);
+  color: var(--texto);
+}
+
+h1,
+h2,
+h3,
+.serif {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  color: var(--oro-claro);
+  letter-spacing: 0.01em;
+}
+
+a {
+  color: var(--oro);
+}
+
+/* ── Formularios y tarjetas ──────────────────────────────── */
+.center {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.card {
+  background: var(--carbon);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 380px;
+}
+
+.card h1 {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+}
+
+label {
+  display: block;
+  margin: 0.75rem 0 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: var(--negro);
+  color: var(--texto);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--oro);
+}
+
+input[type="range"] {
+  padding: 0;
+  accent-color: var(--oro);
+}
+
+button {
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: 0.75rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--oro);
+  color: var(--negro);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: var(--oro-claro);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button.secondary,
+.secondary {
+  background: transparent;
+  color: var(--oro);
+  border: 1px solid var(--oro-hondo);
+}
+
+button.secondary:hover:not(:disabled) {
+  background: rgba(212, 180, 131, 0.12);
+}
+
+.linkbtn {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--oro);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.error {
+  margin-top: 1rem;
+  color: #e08a7a;
+  font-size: 0.9rem;
+}
+
+.empty {
+  color: var(--texto-suave);
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.slogan {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* ── Barra superior y contenido ──────────────────────────── */
+.topnav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.85rem 1.5rem;
+  background: var(--carbon);
+  border-bottom: 1px solid var(--borde);
+  flex-wrap: wrap;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: Georgia, serif;
+  font-size: 1.1rem;
+  color: var(--oro-claro);
+  white-space: nowrap;
+}
+
+.brand img {
+  width: 26px;
+  height: 26px;
+}
+
+.navlinks {
+  display: flex;
+  gap: 1.15rem;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.navlinks a {
+  color: var(--texto-suave);
+  text-decoration: none;
+  font-size: 0.92rem;
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+}
+
+.navlinks a:hover {
+  color: var(--texto);
+}
+
+.navlinks a.active {
+  color: var(--oro);
+  border-bottom-color: var(--oro);
+}
+
+.navuser {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.content {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem 4rem;
+}
+
+.content .card {
+  max-width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.page h1 {
+  font-size: 1.9rem;
+  margin: 0 0 0.4rem;
+}
+
+/* ── Tablas ──────────────────────────────────────────────── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--borde);
+}
+
+th {
+  color: var(--texto-suave);
+  font-weight: 600;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Indicadores ─────────────────────────────────────────── */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.stat {
+  background: var(--carbon);
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  padding: 1.1rem 1.2rem;
+}
+
+.stat .value {
+  font-family: Georgia, serif;
+  font-size: 2rem;
+  color: var(--oro-claro);
+}
+
+.stat .label {
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+  margin-top: 0.15rem;
+}
+
+/* ── Fichas (chips) para ocasión, estilos, categorías ────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+}
+
+.chip {
+  width: auto;
+  margin: 0;
+  padding: 0.42rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--borde);
+  background: var(--carbon);
+  color: var(--texto);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.chip:hover:not(:disabled) {
+  background: rgba(212, 180, 131, 0.1);
+  border-color: var(--oro-hondo);
+}
+
+.chip.on {
+  background: var(--oro);
+  border-color: var(--oro);
+  color: var(--negro);
+  font-weight: 600;
+}
+
+/* ── Clóset ──────────────────────────────────────────────── */
+.closet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 1rem;
+}
+
+.prenda {
+  background: var(--carbon);
+  border: 1px solid var(--borde);
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.prenda .nombre {
+  color: var(--texto);
+  font-size: 1rem;
+}
+
+.prenda .meta {
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+}
+
+.prenda .acciones {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* Marcador de foto: en la web no hay cámara, la foto vive en el celular. */
+.prenda .marco {
+  height: 92px;
+  border-radius: 10px;
+  background: var(--negro);
+  border: 1px dashed var(--borde);
+  display: grid;
+  place-items: center;
+  color: var(--oro-hondo);
+  font-size: 1.7rem;
+  margin-bottom: 0.4rem;
+}
+
+/* ── Resultado del asesor ────────────────────────────────── */
+.proyeccion-label {
+  color: var(--texto-suave);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.proyeccion {
+  font-family: Georgia, serif;
+  font-size: 1.35rem;
+  color: var(--oro-claro);
+  margin: 0.3rem 0 0.9rem;
+}
+
+.explicacion {
+  line-height: 1.55;
+  color: var(--texto);
+}
+
+.aviso-reglas {
+  color: var(--texto-suave);
+  font-size: 0.82rem;
+  margin-top: 1rem;
+}
+
+/* ── Landing ─────────────────────────────────────────────── */
+.landing {
+  min-height: 100vh;
+  background: var(--negro);
+}
+
+.landing-hero {
+  min-height: 92vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+}
+
+.landing-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.landing-brand img {
+  width: 110px;
+}
+
+.landing-brand h1 {
+  font-size: clamp(2.2rem, 7vw, 3.6rem);
+  margin: 0;
+}
+
+.landing-slogan {
+  color: var(--texto-suave);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.landing-lead {
+  color: var(--texto);
+  font-size: 1.12rem;
+  line-height: 1.65;
+  max-width: 40rem;
+  margin: 1.6rem auto 0;
+}
+
+.landing-cta {
+  display: flex;
+  gap: 0.9rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2.2rem;
+}
+
+.landing-btn {
+  width: auto;
+  margin: 0;
+  padding: 0.85rem 1.9rem;
+  border-radius: 999px;
+  font-size: 1rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.landing-btn-primary {
+  background: var(--oro);
+  color: var(--negro);
+  font-weight: 600;
+}
+
+.landing-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--oro-hondo);
+  color: var(--oro);
+}
+
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.landing-feature {
+  background: var(--carbon);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  padding: 1.7rem;
+}
+
+.landing-feature h3 {
+  margin: 0.7rem 0 0.5rem;
+  font-size: 1.15rem;
+}
+
+.landing-feature p {
+  color: var(--texto-suave);
+  line-height: 1.6;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.landing-emoji {
+  font-size: 1.7rem;
+}
+
+.landing-steps {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
+}
+
+.landing-steps li {
+  color: var(--texto);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.landing-note {
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+}
+
+.landing-foot {
+  border-top: 1px solid var(--borde);
+  padding: 2rem 1.5rem 3rem;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+/* El filete ornamental del logo. */
+.filete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: var(--oro);
+}
+
+.filete::before,
+.filete::after {
+  content: "";
+  height: 1px;
+  width: 58px;
+  background: var(--oro);
+  opacity: 0.6;
+}

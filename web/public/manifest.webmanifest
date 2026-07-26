@@ -1,0 +1,13 @@
+{
+  "name": "¿Qué me pongo?",
+  "short_name": "¿Qué me pongo?",
+  "description": "Tu clóset. Tu estilo. Tu mejor versión.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0B0C",
+  "theme_color": "#0B0B0C",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -2,6 +2,10 @@
 
 pull devuelve, por entidad, las filas con `updated_at` posterior al cursor del cliente
 (incluidos tombstones), y un nuevo cursor.
+
+DEFENSA EN PROFUNDIDAD: todas las consultas filtran por `tenant_id` explícitamente,
+además de RLS. Aquí importa el doble: sin el filtro, un push con el id de una fila
+ajena la SOBRESCRIBIRÍA, y un pull devolvería el clóset de otra persona.
 """
 
 from datetime import UTC, datetime
@@ -54,7 +58,9 @@ async def push(session: AsyncSession, tenant_id: UUID, payload: PushRequest) -> 
 
 async def _push_garment(session: AsyncSession, tenant_id: UUID, ch: Change) -> ChangeResult:
     data = ch.data or {}
-    existing = await session.get(Garment, ch.id)
+    if await _de_otro(session, Garment, ch.id, tenant_id):
+        return ChangeResult(id=ch.id, entity="garment", status="rejected")
+    existing = await _own(session, Garment, ch.id, tenant_id)
     if existing is None:
         session.add(
             Garment(
@@ -97,7 +103,9 @@ async def _push_garment(session: AsyncSession, tenant_id: UUID, ch: Change) -> C
 
 async def _push_outfit(session: AsyncSession, tenant_id: UUID, ch: Change) -> ChangeResult:
     data = ch.data or {}
-    existing = await session.get(Outfit, ch.id)
+    if await _de_otro(session, Outfit, ch.id, tenant_id):
+        return ChangeResult(id=ch.id, entity="outfit", status="rejected")
+    existing = await _own(session, Outfit, ch.id, tenant_id)
     if existing is None:
         session.add(
             Outfit(
@@ -134,18 +142,43 @@ async def _push_outfit(session: AsyncSession, tenant_id: UUID, ch: Change) -> Ch
     )
 
 
-async def pull(session: AsyncSession, since: str | None) -> PullResponse:
+async def _de_otro(session: AsyncSession, model: Any, row_id: UUID, tenant_id: UUID) -> bool:
+    """¿Ese id ya existe pero pertenece a otro usuario?
+
+    Sin esta comprobación el código intentaría insertarlo como fila nueva y chocaría
+    con la llave primaria: un error 500 en vez de un rechazo claro.
+    """
+    rows = await session.execute(
+        select(model.id).where(model.id == row_id, model.tenant_id != tenant_id)
+    )
+    return rows.first() is not None
+
+
+async def _own(session: AsyncSession, model: Any, row_id: UUID, tenant_id: UUID) -> Any:
+    """Busca una fila por id SOLO si pertenece al tenant. Evita pisar datos ajenos."""
+    rows = await session.execute(
+        select(model).where(model.id == row_id, model.tenant_id == tenant_id)
+    )
+    return rows.scalars().first()
+
+
+async def pull(session: AsyncSession, tenant_id: UUID, since: str | None) -> PullResponse:
     since_dt = datetime.fromisoformat(since) if since else None
     changes: list[Change] = []
-    changes += await _pull(session, "garment", Garment, _garment_data, since_dt)
-    changes += await _pull(session, "outfit", Outfit, _outfit_data, since_dt)
+    changes += await _pull(session, "garment", Garment, _garment_data, since_dt, tenant_id)
+    changes += await _pull(session, "outfit", Outfit, _outfit_data, since_dt, tenant_id)
     return PullResponse(changes=changes, cursor=datetime.now(UTC).isoformat())
 
 
 async def _pull(
-    session: AsyncSession, name: str, model: Any, data_fn: Any, since_dt: datetime | None
+    session: AsyncSession,
+    name: str,
+    model: Any,
+    data_fn: Any,
+    since_dt: datetime | None,
+    tenant_id: UUID,
 ) -> list[Change]:
-    query = select(model)
+    query = select(model).where(model.tenant_id == tenant_id)
     if since_dt is not None:
         query = query.where(model.updated_at > since_dt)
     rows = (await session.execute(query)).scalars().all()

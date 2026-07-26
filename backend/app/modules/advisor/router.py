@@ -66,7 +66,8 @@ async def recommend(
     data: RecommendRequest, session: TenantSession, claims: Claims
 ) -> dict[str, Any]:
     """El botón estrella: ¿qué me pongo?"""
-    garments = _garment_dicts(await garments_service.list_garments(session))
+    tenant_id = UUID(claims["tenant_id"])
+    garments = _garment_dicts(await garments_service.list_garments(session, tenant_id))
     if not garments:
         raise api_error(
             400,
@@ -74,7 +75,6 @@ async def recommend(
             "Tu clóset está vacío. Toma una foto de tu primera prenda para empezar.",
         )
 
-    tenant_id = UUID(claims["tenant_id"])
     profile = await outfits_service.get_profile(session, tenant_id)
     preferred = outfits_service.csv_to_list(profile.styles) if profile else []
     avoid = outfits_service.csv_to_list(profile.avoid_colors) if profile else []
@@ -82,7 +82,7 @@ async def recommend(
     # Para el modo sorpresa: qué combinaciones ya guardó, para no repetirlas.
     recent: list[list[str]] = []
     if data.surprise:
-        saved = await outfits_service.list_outfits(session)
+        saved = await outfits_service.list_outfits(session, tenant_id)
         recent = [
             [str(i) for i in outfits_service.ids_from_csv(o.garment_ids)] for o in saved[:10]
         ]

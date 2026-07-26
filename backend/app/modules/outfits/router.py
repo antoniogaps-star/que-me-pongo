@@ -40,7 +40,7 @@ def _read(o: Any) -> dict[str, Any]:
 
 @router.get("", response_model=list[OutfitRead])
 async def list_outfits(session: TenantSession, claims: Claims) -> list[dict[str, Any]]:
-    return [_read(o) for o in await service.list_outfits(session)]
+    return [_read(o) for o in await service.list_outfits(session, UUID(claims["tenant_id"]))]
 
 
 @router.post("", response_model=OutfitRead, status_code=status.HTTP_201_CREATED)
@@ -62,7 +62,7 @@ async def save_outfit(
 async def delete_outfit(
     outfit_id: UUID, session: TenantSession, claims: Claims
 ) -> None:
-    await service.delete_outfit(session, outfit_id)
+    await service.delete_outfit(session, outfit_id, UUID(claims["tenant_id"]))
 
 
 @profile_router.get("", response_model=StyleProfileRead)

@@ -1,4 +1,9 @@
-"""Lógica de favoritos y perfil de estilo (tenant-scoped por RLS)."""
+"""Lógica de favoritos y perfil de estilo.
+
+DEFENSA EN PROFUNDIDAD: cada consulta filtra por `tenant_id` explícitamente, además
+de la política RLS de Postgres. No basta con RLS: hay proveedores donde el rol de la
+base **ignora** las políticas por tener privilegios elevados.
+"""
 
 from uuid import UUID
 
@@ -42,17 +47,20 @@ async def save_outfit(
     return outfit
 
 
-async def list_outfits(session: AsyncSession) -> list[Outfit]:
+async def list_outfits(session: AsyncSession, tenant_id: UUID) -> list[Outfit]:
     rows = await session.execute(
         select(Outfit)
-        .where(Outfit.is_deleted.is_(False))
+        .where(Outfit.tenant_id == tenant_id, Outfit.is_deleted.is_(False))
         .order_by(Outfit.created_at.desc())
     )
     return list(rows.scalars().all())
 
 
-async def delete_outfit(session: AsyncSession, outfit_id: UUID) -> None:
-    outfit = await session.get(Outfit, outfit_id)
+async def delete_outfit(session: AsyncSession, outfit_id: UUID, tenant_id: UUID) -> None:
+    rows = await session.execute(
+        select(Outfit).where(Outfit.id == outfit_id, Outfit.tenant_id == tenant_id)
+    )
+    outfit = rows.scalars().first()
     if outfit is None or outfit.is_deleted:
         raise api_error(404, "OUTFIT_NOT_FOUND", "Outfit no encontrado")
     outfit.is_deleted = True

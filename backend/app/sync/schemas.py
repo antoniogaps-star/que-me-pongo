@@ -11,7 +11,9 @@ from uuid import UUID
 from pydantic import BaseModel
 
 ChangeOp = Literal["upsert", "delete"]
-ChangeStatus = Literal["applied", "conflict", "unsupported"]
+# "rejected": el id existe pero pertenece a otro usuario. No se aplica y se avisa,
+# en vez de dejar que el INSERT reviente con un error 500.
+ChangeStatus = Literal["applied", "conflict", "unsupported", "rejected"]
 
 
 class Change(BaseModel):

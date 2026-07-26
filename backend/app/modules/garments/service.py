@@ -1,4 +1,11 @@
-"""Lógica de prendas (tenant-scoped por RLS). Los estilos se guardan como CSV."""
+"""Lógica de prendas. Los estilos se guardan como CSV.
+
+DEFENSA EN PROFUNDIDAD: cada consulta filtra por `tenant_id` explícitamente, además
+de la política RLS de Postgres. No basta con RLS: hay proveedores (Neon, entre otros)
+donde el rol de la base de datos **ignora** las políticas por tener privilegios
+elevados, y entonces un usuario vería el clóset de otro. El filtro en código protege
+aunque la base falle en aplicarlas.
+"""
 
 from uuid import UUID
 
@@ -42,15 +49,27 @@ async def create_garment(
     return garment
 
 
-async def list_garments(session: AsyncSession) -> list[Garment]:
+async def list_garments(session: AsyncSession, tenant_id: UUID) -> list[Garment]:
     rows = await session.execute(
-        select(Garment).where(Garment.is_deleted.is_(False)).order_by(Garment.name)
+        select(Garment)
+        .where(Garment.tenant_id == tenant_id, Garment.is_deleted.is_(False))
+        .order_by(Garment.name)
     )
     return list(rows.scalars().all())
 
 
-async def delete_garment(session: AsyncSession, garment_id: UUID) -> None:
-    garment = await session.get(Garment, garment_id)
+async def get_garment(
+    session: AsyncSession, garment_id: UUID, tenant_id: UUID
+) -> Garment | None:
+    """Busca una prenda SOLO dentro del clóset del tenant indicado."""
+    rows = await session.execute(
+        select(Garment).where(Garment.id == garment_id, Garment.tenant_id == tenant_id)
+    )
+    return rows.scalars().first()
+
+
+async def delete_garment(session: AsyncSession, garment_id: UUID, tenant_id: UUID) -> None:
+    garment = await get_garment(session, garment_id, tenant_id)
     if garment is None or garment.is_deleted:
         raise api_error(404, "GARMENT_NOT_FOUND", "Prenda no encontrada")
     garment.is_deleted = True

@@ -27,4 +27,4 @@ async def push(payload: PushRequest, session: TenantSession, claims: Claims) -> 
 
 @router.get("/pull", response_model=PullResponse)
 async def pull(session: TenantSession, claims: Claims, since: str | None = None) -> PullResponse:
-    return await service.pull(session, since)
+    return await service.pull(session, UUID(claims["tenant_id"]), since)

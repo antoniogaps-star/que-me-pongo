@@ -117,6 +117,20 @@ async def _dispose_app_engine():
 
 
 @pytest_asyncio.fixture
+async def owner_sessions() -> async_sessionmaker:
+    """Sesiones con el rol DUEÑO, que puede apagar `row_security`.
+
+    Sirve para reproducir el entorno de Neon, donde el rol de la base ignora RLS, y así
+    comprobar que el aislamiento del código aguanta por sí solo.
+    """
+    engine = create_async_engine(_owner_url())
+    try:
+        yield async_sessionmaker(engine, expire_on_commit=False)
+    finally:
+        await engine.dispose()
+
+
+@pytest_asyncio.fixture
 async def app_sessions() -> async_sessionmaker:
     """Fábrica de sesiones conectadas con el rol de APLICACIÓN (sujeto a RLS)."""
     engine = create_async_engine(settings.database_url)

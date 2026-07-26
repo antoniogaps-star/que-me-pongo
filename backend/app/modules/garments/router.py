@@ -31,7 +31,8 @@ def _read(g: Any) -> dict[str, Any]:
 
 @router.get("", response_model=list[GarmentRead])
 async def list_garments(session: TenantSession, claims: Claims) -> list[dict[str, Any]]:
-    return [_read(g) for g in await service.list_garments(session)]
+    tenant_id = UUID(claims["tenant_id"])
+    return [_read(g) for g in await service.list_garments(session, tenant_id)]
 
 
 @router.post("", response_model=GarmentRead, status_code=status.HTTP_201_CREATED)
@@ -55,4 +56,4 @@ async def create_garment(
 async def delete_garment(
     garment_id: UUID, session: TenantSession, claims: Claims
 ) -> None:
-    await service.delete_garment(session, garment_id)
+    await service.delete_garment(session, garment_id, UUID(claims["tenant_id"]))

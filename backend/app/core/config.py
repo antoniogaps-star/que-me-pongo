@@ -49,17 +49,14 @@ class Settings(BaseSettings):
     # ── CORS ─────────────────────────────────────────────────
     cors_origins: str = "http://localhost:5173"
 
-    # ── IA de dictado (capa gratuita) ────────────────────────
-    # Se intentan en cascada: primero Groq, luego Gemini como respaldo. Sin ninguna
-    # llave, el endpoint de voz responde 503 y el móvil usa reglas locales.
-    # Groq (preferido: cupo gratuito amplio y estable)
+    # ── Secretos de administración ───────────────────────────
     # Secreto para generar claves de activación (endpoint admin). Vacío = deshabilitado.
     license_admin_secret: str = ""
-    groq_api_key: str = ""
-    groq_model: str = "llama-3.3-70b-versatile"
-    # Gemini (alternativa)
-    gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.0-flash-lite"
+
+    # ── IA: el asesor de imagen (Claude) ─────────────────────
+    # Clasifica las fotos de las prendas y arma/explica los outfits. Sin llave, la app
+    # cae a las reglas locales de app/modules/advisor/rules.py y sigue funcionando.
+    anthropic_api_key: str = ""
 
     @property
     def cors_origins_list(self) -> list[str]:

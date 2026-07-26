@@ -118,24 +118,64 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=120), nullable=False),
         sa.Column("color", sa.String(length=40), nullable=True),
         sa.Column("styles", sa.String(length=200), server_default="", nullable=False),
+        sa.Column("formality", sa.Integer(), server_default="5", nullable=False),
+        sa.Column("season", sa.String(length=10), server_default="todo", nullable=False),
         sa.Column("is_deleted", sa.Boolean(), server_default="false", nullable=False),
         sa.Column("version", sa.BigInteger(), server_default="1", nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
         sa.CheckConstraint(
-            "category IN ('arriba', 'abajo', 'abrigo', 'calzado', 'completo')",
+            "category IN ('arriba', 'abajo', 'abrigo', 'calzado', 'accesorio', 'completo')",
             name="ck_garments_category",
         ),
+        sa.CheckConstraint("season IN ('todo', 'calor', 'frio')", name="ck_garments_season"),
+        sa.CheckConstraint("formality BETWEEN 1 AND 10", name="ck_garments_formality_range"),
         sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("ix_garments_tenant_id", "garments", ["tenant_id"])
     _enable_rls("garments")
 
+    # ── Outfits guardados (favoritos) ────────────────────────
+    op.create_table(
+        "outfits",
+        sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column("tenant_id", sa.Uuid(), nullable=False),
+        sa.Column("garment_ids", sa.Text(), server_default="", nullable=False),
+        sa.Column("occasion", sa.String(length=40), server_default="", nullable=False),
+        sa.Column("projection", sa.String(length=40), server_default="", nullable=False),
+        sa.Column("explanation", sa.Text(), server_default="", nullable=False),
+        sa.Column("is_deleted", sa.Boolean(), server_default="false", nullable=False),
+        sa.Column("version", sa.BigInteger(), server_default="1", nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index("ix_outfits_tenant_id", "outfits", ["tenant_id"])
+    _enable_rls("outfits")
+
+    # ── Perfil de estilo (preferencias opcionales) ───────────
+    op.create_table(
+        "style_profiles",
+        sa.Column("id", sa.Uuid(), nullable=False),
+        sa.Column("tenant_id", sa.Uuid(), nullable=False),
+        sa.Column("styles", sa.String(length=200), server_default="", nullable=False),
+        sa.Column("avoid_colors", sa.String(length=200), server_default="", nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.ForeignKeyConstraint(["tenant_id"], ["tenants.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("tenant_id", name="uq_style_profiles_tenant"),
+    )
+    _enable_rls("style_profiles")
+
 
 def downgrade() -> None:
-    for table in ("garments", "refresh_tokens", "users"):
+    for table in ("style_profiles", "outfits", "garments", "refresh_tokens", "users"):
         op.execute(f"DROP POLICY IF EXISTS tenant_isolation ON {table}")
+    op.drop_table("style_profiles")
+    op.drop_table("outfits")
     op.drop_table("garments")
     op.drop_table("admin_config")
     op.drop_table("licenses")

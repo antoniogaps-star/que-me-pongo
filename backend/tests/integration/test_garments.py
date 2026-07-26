@@ -32,14 +32,17 @@ async def test_alta_y_lista_de_prendas() -> None:
                 "category": "arriba",
                 "name": "Camisa blanca",
                 "color": "blanco",
-                "styles": ["formal", "ejecutivo"],
+                "styles": ["elegante", "ejecutivo"],
+                "formality": 8,
+                "season": "todo",
             },
             headers=auth,
         )
         assert r.status_code == 201, r.text
         body = r.json()
-        assert body["styles"] == ["formal", "ejecutivo"]
+        assert body["styles"] == ["elegante", "ejecutivo"]
         assert body["category"] == "arriba"
+        assert body["formality"] == 8
 
         lst = await client.get("/api/v1/garments", headers=auth)
     assert lst.status_code == 200
@@ -53,7 +56,11 @@ async def test_prendas_aisladas_por_usuario() -> None:
         auth_b = await _register(client, "closet-b")
         await client.post(
             "/api/v1/garments",
-            json={"category": "calzado", "name": "Tenis negros", "styles": ["casual", "rapero"]},
+            json={
+                "category": "calzado",
+                "name": "Tenis negros",
+                "styles": ["casual", "streetwear"],
+            },
             headers=auth_a,
         )
         vista_b = await client.get("/api/v1/garments", headers=auth_b)

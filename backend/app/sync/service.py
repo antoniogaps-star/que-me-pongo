@@ -18,7 +18,14 @@ SUPPORTED_ENTITIES = {"garment"}
 
 
 def _garment_data(g: Garment) -> dict[str, Any]:
-    return {"category": g.category, "name": g.name, "color": g.color, "styles": g.styles}
+    return {
+        "category": g.category,
+        "name": g.name,
+        "color": g.color,
+        "styles": g.styles,
+        "formality": g.formality,
+        "season": g.season,
+    }
 
 
 async def push(session: AsyncSession, tenant_id: UUID, payload: PushRequest) -> PushResponse:
@@ -45,6 +52,8 @@ async def _push_garment(session: AsyncSession, tenant_id: UUID, ch: Change) -> C
                 name=data.get("name", ""),
                 color=data.get("color"),
                 styles=data.get("styles", ""),
+                formality=data.get("formality", 5),
+                season=data.get("season", "todo"),
                 is_deleted=(ch.op == "delete"),
                 version=ch.version,
                 updated_at=ch.updated_at,
@@ -63,6 +72,8 @@ async def _push_garment(session: AsyncSession, tenant_id: UUID, ch: Change) -> C
     existing.name = data.get("name", existing.name)
     existing.color = data.get("color", existing.color)
     existing.styles = data.get("styles", existing.styles)
+    existing.formality = data.get("formality", existing.formality)
+    existing.season = data.get("season", existing.season)
     existing.is_deleted = ch.op == "delete"
     existing.version = ch.version
     existing.updated_at = ch.updated_at

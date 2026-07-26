@@ -25,6 +25,8 @@ async def create_garment(
     name: str,
     color: str | None,
     styles: list[str],
+    formality: int = 5,
+    season: str = "todo",
 ) -> Garment:
     garment = Garment(
         tenant_id=tenant_id,
@@ -32,6 +34,8 @@ async def create_garment(
         name=name,
         color=color,
         styles=styles_to_csv(styles),
+        formality=formality,
+        season=season,
     )
     session.add(garment)
     await session.flush()

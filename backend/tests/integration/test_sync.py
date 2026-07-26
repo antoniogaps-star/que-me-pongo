@@ -83,7 +83,9 @@ async def test_garment_push_y_pull() -> None:
                             "category": "arriba",
                             "name": "Camisa azul",
                             "color": "azul",
-                            "styles": "formal,ejecutivo",
+                            "styles": "elegante,ejecutivo",
+                            "formality": 8,
+                            "season": "todo",
                         },
                     }
                 ]
@@ -100,5 +102,7 @@ async def test_garment_push_y_pull() -> None:
         "category": "arriba",
         "name": "Camisa azul",
         "color": "azul",
-        "styles": "formal,ejecutivo",
+        "styles": "elegante,ejecutivo",
+        "formality": 8,
+        "season": "todo",
     }

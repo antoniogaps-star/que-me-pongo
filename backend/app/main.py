@@ -14,9 +14,12 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.config import settings
 from app.db.session import engine
+from app.modules.advisor.router import router as advisor_router
 from app.modules.auth.router import router as auth_router
 from app.modules.billing.router import router as billing_router
 from app.modules.garments.router import router as garments_router
+from app.modules.outfits.router import profile_router
+from app.modules.outfits.router import router as outfits_router
 from app.modules.users.router import router as users_router
 from app.sync.router import router as sync_router
 
@@ -74,4 +77,7 @@ app.include_router(auth_router, prefix=API_PREFIX)
 app.include_router(billing_router, prefix=API_PREFIX)
 app.include_router(users_router, prefix=API_PREFIX)
 app.include_router(garments_router, prefix=API_PREFIX)
+app.include_router(outfits_router, prefix=API_PREFIX)
+app.include_router(profile_router, prefix=API_PREFIX)
+app.include_router(advisor_router, prefix=API_PREFIX)
 app.include_router(sync_router, prefix=API_PREFIX)

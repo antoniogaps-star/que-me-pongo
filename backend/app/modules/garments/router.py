@@ -24,6 +24,8 @@ def _read(g: Any) -> dict[str, Any]:
         "name": g.name,
         "color": g.color,
         "styles": service.styles_from_csv(g.styles),
+        "formality": g.formality,
+        "season": g.season,
     }
 
 
@@ -43,6 +45,8 @@ async def create_garment(
         name=data.name,
         color=data.color,
         styles=list(data.styles),
+        formality=data.formality,
+        season=data.season,
     )
     return _read(garment)
 

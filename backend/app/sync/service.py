@@ -12,9 +12,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.garments.models import Garment
+from app.modules.outfits.models import Outfit
 from app.sync.schemas import Change, ChangeResult, PullResponse, PushRequest, PushResponse
 
-SUPPORTED_ENTITIES = {"garment"}
+SUPPORTED_ENTITIES = {"garment", "outfit"}
 
 
 def _garment_data(g: Garment) -> dict[str, Any]:
@@ -28,11 +29,22 @@ def _garment_data(g: Garment) -> dict[str, Any]:
     }
 
 
+def _outfit_data(o: Outfit) -> dict[str, Any]:
+    return {
+        "garment_ids": o.garment_ids,
+        "occasion": o.occasion,
+        "projection": o.projection,
+        "explanation": o.explanation,
+    }
+
+
 async def push(session: AsyncSession, tenant_id: UUID, payload: PushRequest) -> PushResponse:
     results: list[ChangeResult] = []
     for change in payload.changes:
         if change.entity == "garment":
             results.append(await _push_garment(session, tenant_id, change))
+        elif change.entity == "outfit":
+            results.append(await _push_outfit(session, tenant_id, change))
         else:
             results.append(
                 ChangeResult(id=change.id, entity=change.entity, status="unsupported")
@@ -83,10 +95,50 @@ async def _push_garment(session: AsyncSession, tenant_id: UUID, ch: Change) -> C
     )
 
 
+async def _push_outfit(session: AsyncSession, tenant_id: UUID, ch: Change) -> ChangeResult:
+    data = ch.data or {}
+    existing = await session.get(Outfit, ch.id)
+    if existing is None:
+        session.add(
+            Outfit(
+                id=ch.id,
+                tenant_id=tenant_id,
+                garment_ids=data.get("garment_ids", ""),
+                occasion=data.get("occasion", ""),
+                projection=data.get("projection", ""),
+                explanation=data.get("explanation", ""),
+                is_deleted=(ch.op == "delete"),
+                version=ch.version,
+                updated_at=ch.updated_at,
+            )
+        )
+        await session.flush()
+        return ChangeResult(
+            id=ch.id, entity="outfit", status="applied", server_version=ch.version
+        )
+
+    if ch.updated_at < existing.updated_at:
+        return ChangeResult(
+            id=ch.id, entity="outfit", status="conflict", server_version=existing.version
+        )
+    existing.garment_ids = data.get("garment_ids", existing.garment_ids)
+    existing.occasion = data.get("occasion", existing.occasion)
+    existing.projection = data.get("projection", existing.projection)
+    existing.explanation = data.get("explanation", existing.explanation)
+    existing.is_deleted = ch.op == "delete"
+    existing.version = ch.version
+    existing.updated_at = ch.updated_at
+    await session.flush()
+    return ChangeResult(
+        id=ch.id, entity="outfit", status="applied", server_version=existing.version
+    )
+
+
 async def pull(session: AsyncSession, since: str | None) -> PullResponse:
     since_dt = datetime.fromisoformat(since) if since else None
     changes: list[Change] = []
     changes += await _pull(session, "garment", Garment, _garment_data, since_dt)
+    changes += await _pull(session, "outfit", Outfit, _outfit_data, since_dt)
     return PullResponse(changes=changes, cursor=datetime.now(UTC).isoformat())
 
 

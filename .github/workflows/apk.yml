@@ -1,0 +1,76 @@
+name: APK
+
+# Compila el APK de "¿Qué me pongo?" en cada push que toque `mobile/` y lo publica
+# como Release con nombre FIJO (quemepongo.apk), para tener un enlace estable:
+#   https://github.com/<usuario>/<repo>/releases/latest/download/quemepongo.apk
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  # URL del backend en Render. Se puede sobreescribir sin tocar este archivo
+  # creando la variable de repositorio `API_URL` en Settings → Variables.
+  API_URL: ${{ vars.API_URL || 'https://quemepongo-api.onrender.com/api/v1' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Dependencias
+        working-directory: mobile
+        run: flutter pub get
+
+      # El código de Drift (.g.dart) está gitignored: hay que regenerarlo aquí
+      # o la compilación falla por código faltante.
+      - name: Generar código (Drift/Freezed)
+        working-directory: mobile
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analizar
+        working-directory: mobile
+        run: flutter analyze
+
+      - name: Pruebas
+        working-directory: mobile
+        run: flutter test
+
+      # `--build-number` da un versionCode único por build; sin él Android
+      # rechaza reinstalar por "misma versión".
+      - name: Compilar APK
+        working-directory: mobile
+        run: |
+          flutter build apk --release \
+            --build-number=${{ github.run_number }} \
+            --dart-define=API_URL=${{ env.API_URL }}
+
+      - name: Renombrar a nombre fijo
+        run: cp mobile/build/app/outputs/flutter-apk/app-release.apk quemepongo.apk
+
+      - name: Publicar Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: ¿Qué me pongo? APK build ${{ github.run_number }}
+          body: |
+            APK instalable de "¿Qué me pongo?" (build ${{ github.run_number }}).
+            Backend: ${{ env.API_URL }}
+          files: quemepongo.apk

@@ -1,8 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Necesario para hablar con la API (el template solo lo incluye en debug). -->
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- Cámara: la foto de cada prenda del clóset -->
-    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- NO se declara android.permission.CAMERA a propósito.
+         Android tiene una regla contraintuitiva: si la app DECLARA ese permiso y no se
+         lo han concedido en tiempo de ejecución, abrir la cámara con IMAGE_CAPTURE
+         lanza SecurityException. image_picker no pide ese permiso porque no lo
+         necesita —usa la app de cámara del teléfono, que ya lo tiene—, así que
+         declararlo rompía la cámara en vez de habilitarla. -->
     <application
         android:label="¿Qué me pongo?"
         android:name="${applicationName}"

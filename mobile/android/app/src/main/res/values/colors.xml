@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#A4C9F3</color>
-    <!-- Fondo del splash de Sonrisa (azul mezclilla oscuro, para que resalte el diente).
+    <color name="ic_launcher_background">#0B0B0C</color>
+    <!-- Fondo del splash: el negro de la marca, para que el gancho dorado resalte.
          Evita el destello blanco antes de que Flutter pinte el primer frame. -->
-    <color name="splash_bg">#FF1E2F4D</color>
+    <color name="splash_bg">#FF0B0B0C</color>
 </resources>

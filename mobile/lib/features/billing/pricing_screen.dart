@@ -62,7 +62,7 @@ const _plans = <_Plan>[
     features: [
       'Todo lo del plan Esencial',
       'Administración de hasta 3 negocios',
-      'Inventarios independientes por negocio',
+      'Cada quien con su propio clóset, privado',
       'Reportes de inventario descargables',
       'Control de entradas y salidas',
       'Usuarios y permisos',

@@ -20,7 +20,7 @@ from app.modules.outfits import service as outfits
 from app.sync import service as sync
 from app.sync.schemas import Change, PushRequest
 
-_TABLAS = ("garments", "outfits")
+_TABLAS = ("garments", "outfits", "garment_photos")
 
 
 @pytest.fixture
@@ -134,3 +134,52 @@ async def test_favoritos_tambien_quedan_aislados(dos_closets, owner_sessions) ->
     async with owner_sessions() as s:
         assert await outfits.list_outfits(s, tenant_b) == []
         assert len(await outfits.list_outfits(s, tenant_a)) == 1
+
+
+async def test_la_foto_de_otro_no_se_alcanza_sin_rls(dos_closets, owner_sessions) -> None:
+    """Aunque la base no filtre, la foto de la prenda de A no es visible para B.
+
+    Es el mismo escenario de Neon: si el aislamiento dependiera solo de la base, aquí se
+    filtraría la imagen de la ropa de otra persona.
+    """
+    from app.modules.garments import photos
+
+    tenant_a, tenant_b, id_de_a = dos_closets
+
+    async with owner_sessions() as s:
+        await photos.guardar(
+            s,
+            garment_id=id_de_a,
+            tenant_id=tenant_a,
+            data=b"foto de A",
+            content_type="image/jpeg",
+        )
+        await s.commit()
+
+    async with owner_sessions() as s:
+        assert await photos.obtener(s, id_de_a, tenant_b) is None
+        assert await photos.con_foto(s, tenant_b) == set()
+        # Y para su dueño sí está.
+        mia = await photos.obtener(s, id_de_a, tenant_a)
+        assert mia is not None and mia.data == b"foto de A"
+
+
+async def test_no_se_puede_respaldar_sobre_la_prenda_de_otro(
+    dos_closets, owner_sessions
+) -> None:
+    import pytest as _pytest
+
+    from app.modules.garments import photos
+
+    _, tenant_b, id_de_a = dos_closets
+    async with owner_sessions() as s:
+        with _pytest.raises(Exception) as fallo:
+            await photos.guardar(
+                s,
+                garment_id=id_de_a,
+                tenant_id=tenant_b,
+                data=b"secuestrada",
+                content_type="image/jpeg",
+            )
+    assert "GARMENT_NOT_FOUND" in str(fallo.value)
+

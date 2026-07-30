@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/local/database.dart';
+import '../data/sync/photo_sync.dart';
 import '../data/sync/sync_service.dart';
 import '../features/advisor/advisor_api.dart';
 import '../features/auth/auth_repository.dart';
@@ -32,6 +33,12 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 
 final syncServiceProvider = Provider<SyncService>(
   (ref) => SyncService(ref.watch(databaseProvider), ref.watch(dioProvider)),
+);
+
+/// El respaldo de las fotos, aparte del resto de la sincronización: una imagen no puede
+/// detener el guardado de la ficha de todas las prendas.
+final photoSyncProvider = Provider<PhotoSync>(
+  (ref) => PhotoSync(ref.watch(databaseProvider), ref.watch(dioProvider)),
 );
 
 // ── El asesor de imagen ──────────────────────────────────────

@@ -15,6 +15,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.garments import photos
 from app.modules.garments.models import Garment
 from app.modules.outfits.models import Outfit
 from app.sync.schemas import Change, ChangeResult, PullResponse, PushRequest, PushResponse
@@ -95,6 +96,12 @@ async def _push_garment(session: AsyncSession, tenant_id: UUID, ch: Change) -> C
     existing.is_deleted = ch.op == "delete"
     existing.version = ch.version
     existing.updated_at = ch.updated_at
+
+    # Si la prenda se borró, su foto respaldada ya no sirve para nada y solo ocupa
+    # espacio. Sin esto, borrar ropa desde el celular dejaba imágenes huérfanas.
+    if existing.is_deleted:
+        await photos.borrar(session, ch.id, tenant_id)
+
     await session.flush()
     return ChangeResult(
         id=ch.id, entity="garment", status="applied", server_version=existing.version

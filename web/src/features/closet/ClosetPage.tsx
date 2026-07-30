@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   CATEGORIAS,
@@ -8,6 +8,8 @@ import {
   createGarment,
   deleteGarment,
   describeFormalidad,
+  fetchGarmentPhotoUrl,
+  fetchGarmentsWithPhoto,
   listGarments,
 } from "./api";
 
@@ -29,6 +31,10 @@ const ICONOS: Record<string, string> = {
 export function ClosetPage() {
   const qc = useQueryClient();
   const prendas = useQuery({ queryKey: ["garments"], queryFn: listGarments });
+  const conFoto = useQuery({
+    queryKey: ["garments-con-foto"],
+    queryFn: fetchGarmentsWithPhoto,
+  });
 
   const [nombre, setNombre] = useState("");
   const [color, setColor] = useState("");
@@ -82,7 +88,7 @@ export function ClosetPage() {
     <div className="page">
       <h1>Mi clóset</h1>
       <p className="landing-note" style={{ marginTop: "-0.2rem" }}>
-        Las fotos se toman desde la app del celular. Aquí puedes capturar prendas en lote
+        Las fotos se toman desde la app del celular y aquí se ven. Puedes capturar prendas en lote
         y revisarlas en pantalla grande.
       </p>
 
@@ -181,7 +187,7 @@ export function ClosetPage() {
       <div className="closet-grid">
         {prendas.data?.map((p) => (
           <article key={p.id} className="prenda">
-            <div className="marco">{ICONOS[p.category] ?? "👕"}</div>
+            <FotoPrenda id={p.id} hayFoto={conFoto.data?.has(p.id) ?? false} categoria={p.category} />
             <span className="nombre">{p.name}</span>
             <span className="meta">
               {CATEGORIAS[p.category as keyof typeof CATEGORIAS] ?? p.category}
@@ -205,4 +211,56 @@ export function ClosetPage() {
       </div>
     </div>
   );
+}
+
+/**
+ * La foto de una prenda, con el ícono de su categoría como respaldo.
+ *
+ * Se descarga con el token de la sesión y se libera al desmontar: sin ese `revoke`, ir
+ * y venir por el clóset dejaría una imagen tras otra ocupando memoria del navegador.
+ */
+function FotoPrenda({
+  id,
+  hayFoto,
+  categoria,
+}: {
+  id: string;
+  hayFoto: boolean;
+  categoria: string;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hayFoto) return;
+    let viva = true;
+    let creada: string | null = null;
+
+    fetchGarmentPhotoUrl(id)
+      .then((u) => {
+        creada = u;
+        if (viva) setUrl(u);
+        else URL.revokeObjectURL(u);
+      })
+      .catch(() => {
+        /* si falla, se queda el ícono */
+      });
+
+    return () => {
+      viva = false;
+      if (creada) URL.revokeObjectURL(creada);
+    };
+  }, [id, hayFoto]);
+
+  if (url) {
+    return (
+      <div className="marco">
+        <img
+          src={url}
+          alt=""
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </div>
+    );
+  }
+  return <div className="marco">{ICONOS[categoria] ?? "👕"}</div>;
 }

@@ -41,8 +41,16 @@ class Garments extends Table with _SyncColumns {
   /// todo | calor | frio
   TextColumn get season => text().withDefault(const Constant('todo'))();
 
-  /// Ruta del archivo de la foto en este teléfono. No se sincroniza.
+  /// Ruta del archivo de la foto EN ESTE TELÉFONO. La ruta no se sincroniza (no
+  /// significaría nada en otro aparato); los bytes sí se respaldan aparte.
   TextColumn get photoPath => text().nullable()();
+
+  /// ¿La foto ya está respaldada en el servidor?
+  ///
+  /// Se sube aparte de la ficha y en su propio momento: una imagen pesa mil veces más
+  /// que los datos de la prenda, y en una red mala no puede detener la sincronización
+  /// de todo lo demás.
+  BoolColumn get photoSynced => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -69,9 +77,37 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.encrypted(SecureStore store) : super(_openEncrypted(store));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  /// Actualización de la base LOCAL en teléfonos que ya tienen la app instalada.
+  ///
+  /// Sin esto, al abrir la versión nueva Drift encuentra la tabla sin la columna y
+  /// revienta: el usuario perdería el acceso a su clóset.
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.addColumn(garments, garments.photoSynced);
+          }
+        },
+      );
 
   // ── Clóset ─────────────────────────────────────────────────
+  /// Prendas con foto en el teléfono que todavía no está respaldada.
+  Future<List<Garment>> garmentsWithPendingPhoto() => (select(garments)
+        ..where((g) => g.photoPath.isNotNull() & g.photoSynced.equals(false)))
+      .get();
+
+  /// Prendas SIN foto local: candidatas a bajarla del respaldo.
+  Future<List<Garment>> garmentsWithoutPhoto() => (select(garments)
+        ..where((g) => g.photoPath.isNull() & g.isDeleted.equals(false)))
+      .get();
+
+  Future<void> setGarmentPhoto(String id, String? ruta, {required bool synced}) =>
+      (update(garments)..where((g) => g.id.equals(id))).write(
+        GarmentsCompanion(photoPath: Value(ruta), photoSynced: Value(synced)),
+      );
   Future<List<Garment>> activeGarments() => (select(garments)
         ..where((g) => g.isDeleted.equals(false))
         ..orderBy([(g) => OrderingTerm(expression: g.name)]))

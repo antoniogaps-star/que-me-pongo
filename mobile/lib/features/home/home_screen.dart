@@ -26,6 +26,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final sync = ref.read(syncServiceProvider);
       await sync.push();
       await sync.pull();
+      // Las fotos van al final y aparte: si fallan, la ficha del clóset ya se guardó.
+      await ref.read(photoSyncProvider).sincronizar();
       messenger.showSnackBar(const SnackBar(content: Text('Sincronización completa')));
     } on SubscriptionExpiredException catch (e) {
       messenger.showSnackBar(

@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 import app.modules.auth.models  # noqa: F401
 import app.modules.billing.models  # noqa: F401
 import app.modules.garments.models  # noqa: F401
+import app.modules.garments.photos  # noqa: F401
 import app.modules.outfits.models  # noqa: F401
 import app.modules.tenants.models  # noqa: F401
 import app.modules.users.models  # noqa: F401

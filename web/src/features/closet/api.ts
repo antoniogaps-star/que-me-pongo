@@ -74,3 +74,24 @@ export function describeFormalidad(v: number): string {
   if (v <= 8) return "Formal: oficina, reunión";
   return "De etiqueta";
 }
+
+/**
+ * Qué prendas tienen foto respaldada. Una sola petición para todo el clóset, en vez de
+ * pedir la imagen de cada una para averiguar si existe.
+ */
+export async function fetchGarmentsWithPhoto(): Promise<Set<string>> {
+  const { data } = await api.get("/garments/fotos");
+  return new Set(z.array(z.string()).parse(data));
+}
+
+/**
+ * Descarga la foto de una prenda y la convierte en una URL que el navegador pueda pintar.
+ *
+ * No se puede poner la dirección directo en un `<img src>`: la API exige el token de la
+ * sesión en la cabecera, y una etiqueta `<img>` no manda cabeceras. Por eso se baja como
+ * archivo y se crea una URL temporal en memoria.
+ */
+export async function fetchGarmentPhotoUrl(id: string): Promise<string> {
+  const { data } = await api.get(`/garments/${id}/foto`, { responseType: "blob" });
+  return URL.createObjectURL(data as Blob);
+}

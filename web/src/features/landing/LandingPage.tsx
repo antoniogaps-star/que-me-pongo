@@ -1,8 +1,14 @@
 import { Link } from "react-router-dom";
 
-/** Enlace estable a la última versión del APK (el workflow lo sube con nombre fijo). */
-const APK_URL =
-  "https://github.com/antoniogaps-star/que-me-pongo/releases/latest/download/quemepongo.apk";
+/**
+ * Enlace CORTO de descarga: `/app`.
+ *
+ * Es una redirección (ver `vercel.json`) hacia la última versión del APK en GitHub. Se
+ * usa el corto y no el de GitHub porque este se dicta por teléfono sin equivocarse y
+ * cabe donde sea. Y si mañana el archivo cambia de nombre o de lugar, se cambia la
+ * redirección y lo ya compartido sigue funcionando.
+ */
+const APK_URL = "/app";
 
 /** La app descargable es solo Android; iPhone y computadora usan el panel web. */
 const isIOS =

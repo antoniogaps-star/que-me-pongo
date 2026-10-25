@@ -30,9 +30,12 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # Versión FIJA: con "la última estable" (3.47) build_runner se colgaba para
+      # siempre en "Reading the asset graph" por las dependencias del pubspec.lock.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: "3.44.8"
           cache: true
 
       - name: Dependencias

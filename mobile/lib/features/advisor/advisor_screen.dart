@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -62,6 +63,14 @@ class _AdvisorScreenState extends ConsumerState<AdvisorScreen> {
       _error = null;
     });
     try {
+      // El asesor arma el conjunto con el clóset del SERVIDOR: primero se suben las
+      // prendas recién agregadas en el teléfono, o el servidor lo vería vacío. Si
+      // falla (sin red), se sigue: el error real lo dirá la recomendación.
+      try {
+        await ref.read(syncServiceProvider).push();
+      } catch (_) {
+        // Sin red o servidor dormido: se intenta de todos modos.
+      }
       final api = ref.read(advisorApiProvider);
       final r = await api.recomendar(
         ocasion: _ocasion,
@@ -77,15 +86,27 @@ class _AdvisorScreenState extends ConsumerState<AdvisorScreen> {
     }
   }
 
+  /// El servidor ya explica qué pasó (clóset vacío, faltan prendas, prueba vencida…):
+  /// se muestra eso. Un DioException no trae el cuerpo en su toString(), por eso hay
+  /// que leerlo de la respuesta.
   String _mensaje(Object e) {
-    final texto = e.toString();
-    if (texto.contains('EMPTY_CLOSET') || texto.contains('clóset está vacío')) {
-      return 'Tu clóset está vacío. Toma una foto de tu primera prenda para empezar.';
+    if (e is DioException) {
+      final data = e.response?.data;
+      if (data is Map && data['error'] is Map) {
+        final msg = data['error']['message'];
+        if (msg is String && msg.isNotEmpty) return msg;
+      }
+      final code = e.response?.statusCode;
+      if (code == 401) return 'Tu sesión venció. Cierra sesión y vuelve a entrar.';
+      if (code != null && code >= 500) {
+        return 'El servidor tuvo un problema. Espera unos segundos y vuelve a intentar.';
+      }
+      if (code == null) {
+        return 'No pude conectar con el servidor. Puede estar despertando: '
+            'espera ~1 minuto y vuelve a intentar.';
+      }
     }
-    if (texto.contains('NOT_ENOUGH_GARMENTS') || texto.contains('suficientes prendas')) {
-      return 'Aún faltan prendas. Agrega al menos una de arriba, una de abajo y un calzado.';
-    }
-    return 'No pude armar el conjunto. Revisa tu conexión e inténtalo de nuevo.';
+    return 'No pude armar el conjunto. Inténtalo de nuevo.';
   }
 
   @override

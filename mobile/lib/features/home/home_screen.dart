@@ -20,7 +20,18 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _tab = 0;
 
-  Future<void> _sync() async {
+  @override
+  void initState() {
+    super.initState();
+    // Al entrar se sincroniza solo y en silencio: tras reinstalar o en otro teléfono el
+    // clóset local está vacío, y sin esto las prendas que propone el asesor (que vive
+    // en el servidor) no se encontraban y la tarjeta salía sin fotos ni nombres.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _sync(silencioso: true);
+    });
+  }
+
+  Future<void> _sync({bool silencioso = false}) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final sync = ref.read(syncServiceProvider);
@@ -28,7 +39,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       await sync.pull();
       // Las fotos van al final y aparte: si fallan, la ficha del clóset ya se guardó.
       await ref.read(photoSyncProvider).sincronizar();
-      messenger.showSnackBar(const SnackBar(content: Text('Sincronización completa')));
+      if (!silencioso) {
+        messenger.showSnackBar(const SnackBar(content: Text('Sincronización completa')));
+      }
     } on SubscriptionExpiredException catch (e) {
       messenger.showSnackBar(
         SnackBar(
@@ -43,9 +56,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       );
     } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Sin conexión: se sincronizará luego')),
-      );
+      if (!silencioso) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Sin conexión: se sincronizará luego')),
+        );
+      }
     }
   }
 
@@ -66,7 +81,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               MaterialPageRoute<void>(builder: (_) => const PricingScreen()),
             ),
           ),
-          IconButton(icon: const Icon(Icons.sync), tooltip: 'Sincronizar', onPressed: _sync),
+          IconButton(icon: const Icon(Icons.sync), tooltip: 'Sincronizar', onPressed: () => _sync()),
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Cerrar sesión',

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -68,10 +69,13 @@ class _AdvisorScreenState extends ConsumerState<AdvisorScreen> {
     });
     try {
       // El asesor arma el conjunto con el clóset del SERVIDOR: primero se suben las
-      // prendas recién agregadas en el teléfono, o el servidor lo vería vacío. Si
-      // falla (sin red), se sigue: el error real lo dirá la recomendación.
+      // prendas recién agregadas en el teléfono (o el servidor lo vería vacío) y se
+      // bajan las que falten aquí (o la tarjeta no las encontraría para mostrarlas).
+      // Si falla (sin red), se sigue: el error real lo dirá la recomendación.
       try {
-        await ref.read(syncServiceProvider).push();
+        final sync = ref.read(syncServiceProvider);
+        await sync.push();
+        await sync.pull();
       } catch (_) {
         // Sin red o servidor dormido: se intenta de todos modos.
       }
@@ -85,6 +89,8 @@ class _AdvisorScreenState extends ConsumerState<AdvisorScreen> {
       );
       _vistos.addAll(r.outfits.map((o) => o.garmentIds));
       if (mounted) setState(() => _resultado = r);
+      // Las fotos que falten se bajan aparte; la tarjeta se actualiza sola al llegar.
+      unawaited(ref.read(photoSyncProvider).sincronizar());
     } catch (e) {
       if (mounted) setState(() => _error = _mensaje(e));
     } finally {

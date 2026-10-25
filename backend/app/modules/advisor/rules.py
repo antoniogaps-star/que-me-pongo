@@ -349,9 +349,9 @@ def _explain(
     if not loud:
         partes.append("Todo en tonos neutros: combina sin riesgo y se ve ordenado.")
     elif len({_color(g) for g in loud}) == 1:
+        color = str(loud[0].get("color") or "").strip()
         partes.append(
-            f"El {_color(loud[0])} de {loud[0].get('name')} es el punto de color "
-            "y lo demás lo equilibra."
+            f"{loud[0].get('name')} ({color}) es el punto de color y lo demás lo equilibra."
         )
     else:
         partes.append("Ojo: hay más de un color fuerte; si puedes, deja solo uno.")

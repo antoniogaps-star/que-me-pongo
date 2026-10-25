@@ -64,6 +64,24 @@ class ClosetRepository {
     return archivo.path;
   }
 
+  /// Pone o cambia la foto de una prenda que ya existe. El archivo lleva la hora en el
+  /// nombre para que la pantalla no muestre la imagen anterior guardada en caché.
+  Future<void> cambiarFoto(Garment prenda, File nueva) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final destino = Directory('${dir.path}/prendas');
+    if (!destino.existsSync()) destino.createSync(recursive: true);
+    final archivo = File(
+      '${destino.path}/${prenda.id}-${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
+    await nueva.copy(archivo.path);
+    final anterior = prenda.photoPath;
+    await _db.setGarmentPhoto(prenda.id, archivo.path, synced: false);
+    if (anterior != null && anterior != archivo.path) {
+      final viejo = File(anterior);
+      if (viejo.existsSync()) await viejo.delete();
+    }
+  }
+
   Future<String> add({
     required String category,
     required String name,

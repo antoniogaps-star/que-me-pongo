@@ -1,5 +1,9 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/providers.dart';
 import '../../core/theme.dart';
@@ -7,6 +11,7 @@ import '../../data/local/database.dart';
 import '../advisor/advisor_screen.dart';
 import 'add_garment_screen.dart';
 import 'closet_repository.dart';
+import 'respaldo.dart';
 
 /// Mi clóset: la cuadrícula de prendas con su foto. Desde aquí se agrega una prenda
 /// nueva y se pregunta "¿con qué combino esto?".
@@ -174,6 +179,17 @@ class _TarjetaPrenda extends ConsumerWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.photo_camera_outlined, color: Marca.oro),
+              title: Text(
+                prenda.photoPath == null ? 'Ponerle foto' : 'Cambiar foto',
+                style: const TextStyle(color: Marca.texto),
+              ),
+              onTap: () {
+                Navigator.of(hoja).pop();
+                _cambiarFoto(context, ref);
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.delete_outline, color: Marca.textoSuave),
               title: const Text(
                 'Quitar del clóset',
@@ -189,6 +205,49 @@ class _TarjetaPrenda extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Cámara o galería, y la foto queda puesta y respaldada en el servidor.
+  Future<void> _cambiarFoto(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final origen = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Marca.carbon,
+      builder: (hoja) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined, color: Marca.oro),
+              title: const Text('Tomar foto', style: TextStyle(color: Marca.texto)),
+              onTap: () => Navigator.of(hoja).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined, color: Marca.oro),
+              title: const Text('Elegir de la galería', style: TextStyle(color: Marca.texto)),
+              onTap: () => Navigator.of(hoja).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (origen == null) return;
+
+    final XFile? elegida;
+    try {
+      // Mismo tamaño y calidad que al agregar una prenda.
+      elegida = await ImagePicker().pickImage(source: origen, maxWidth: 1400, imageQuality: 85);
+    } catch (_) {
+      messenger.showSnackBar(const SnackBar(
+        content: Text('Tu teléfono no dejó abrir la cámara o la galería. Revisa los '
+            'permisos de la app en los ajustes de Android.'),
+      ));
+      return;
+    }
+    if (elegida == null) return;
+
+    await ref.read(closetRepositoryProvider).cambiarFoto(prenda, File(elegida.path));
+    unawaited(respaldarAhora(ref));
   }
 
   static String _detalle(Garment g) {

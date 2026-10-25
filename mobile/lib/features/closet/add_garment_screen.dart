@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import '../../core/providers.dart';
 import '../../core/theme.dart';
 import '../advisor/advisor_api.dart';
 import 'closet_repository.dart';
+import 'respaldo.dart';
 
 /// Agregar una prenda: tomas la foto, la IA la clasifica y tú solo confirmas.
 ///
@@ -136,6 +138,7 @@ class _AddGarmentScreenState extends ConsumerState<AddGarmentScreen> {
           season: _temporada,
           foto: _foto,
         );
+    unawaited(respaldarAhora(ref));
     if (mounted) navigator.pop(true);
   }
 

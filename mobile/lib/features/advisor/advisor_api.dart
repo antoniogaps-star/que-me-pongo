@@ -95,6 +95,7 @@ class AdvisorApi {
     String? conPrendaId,
     bool sorpresa = false,
     int cuantos = 1,
+    List<List<String>> excluir = const [],
   }) async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/advisor/recommend',
@@ -105,6 +106,8 @@ class AdvisorApi {
         if (conPrendaId != null) 'with_garment_id': conPrendaId,
         'surprise': sorpresa,
         'count': cuantos,
+        // "Proponme otro": lo ya mostrado, para que no lo repita.
+        if (excluir.isNotEmpty) 'exclude': excluir,
       },
     );
     final d = response.data!;

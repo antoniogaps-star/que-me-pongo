@@ -57,6 +57,10 @@ class _AdvisorScreenState extends ConsumerState<AdvisorScreen> {
   String? _error;
   Recomendacion? _resultado;
 
+  /// Conjuntos ya mostrados con esta ocasión y proyección: "Proponme otro" los manda
+  /// para que el asesor no los repita. Se olvidan al cambiar de ocasión.
+  final _vistos = <List<String>>[];
+
   Future<void> _pedirRecomendacion() async {
     setState(() {
       _cargando = true;
@@ -77,7 +81,9 @@ class _AdvisorScreenState extends ConsumerState<AdvisorScreen> {
         proyeccion: _proyeccion,
         conPrendaId: widget.conPrenda?.id,
         sorpresa: widget.sorpresa,
+        excluir: List.of(_vistos),
       );
+      _vistos.addAll(r.outfits.map((o) => o.garmentIds));
       if (mounted) setState(() => _resultado = r);
     } catch (e) {
       if (mounted) setState(() => _error = _mensaje(e));
@@ -128,7 +134,10 @@ class _AdvisorScreenState extends ConsumerState<AdvisorScreen> {
                 setState(() => _resultado = null);
                 _pedirRecomendacion();
               },
-              onCambiar: () => setState(() => _resultado = null),
+              onCambiar: () => setState(() {
+                _resultado = null;
+                _vistos.clear();
+              }),
             )
           : _Preguntas(
               ocasion: _ocasion,

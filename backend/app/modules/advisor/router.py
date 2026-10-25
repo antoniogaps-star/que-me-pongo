@@ -80,10 +80,11 @@ async def recommend(
     avoid = outfits_service.csv_to_list(profile.avoid_colors) if profile else []
 
     # Para el modo sorpresa: qué combinaciones ya guardó, para no repetirlas.
-    recent: list[list[str]] = []
+    # Lo ya mostrado ("Proponme otro") tampoco se repite.
+    recent: list[list[str]] = [[str(i) for i in combo] for combo in data.exclude]
     if data.surprise:
         saved = await outfits_service.list_outfits(session, tenant_id)
-        recent = [
+        recent += [
             [str(i) for i in outfits_service.ids_from_csv(o.garment_ids)] for o in saved[:10]
         ]
 
@@ -121,6 +122,10 @@ async def recommend(
         occasion=data.occasion,
         projection=data.projection,
         temperature_c=data.temperature_c,
+        anchor_garment_id=str(data.with_garment_id) if data.with_garment_id else None,
+        exclude=[[str(i) for i in combo] for combo in data.exclude],
+        preferred_styles=preferred,
+        avoid_colors=avoid,
     )
     if fallback is None:
         raise api_error(

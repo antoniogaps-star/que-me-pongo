@@ -238,6 +238,9 @@ async def recommend(
             "de su estilo, y menciona en la explicación qué cambiaste."
             + (f" Combinaciones que ya usa: {combos}." if combos else "")
         )
+    elif recent_combos:
+        combos = "; ".join(", ".join(c) for c in recent_combos)
+        partes.append(f"YA LE MOSTRASTE estos conjuntos, propón uno distinto: {combos}.")
     partes.append(
         f"\nArma {count} conjunto(s) usando SOLO los id del clóset. Incluye arriba, abajo y "
         "calzado; agrega abrigo si el clima lo pide y accesorio si suma."

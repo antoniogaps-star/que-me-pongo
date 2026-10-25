@@ -32,6 +32,8 @@ class RecommendRequest(BaseModel):
     with_garment_id: UUID | None = None
     # "Sorpréndeme": busca combinaciones distintas a las que ya usa.
     surprise: bool = False
+    # "Proponme otro": conjuntos ya mostrados (listas de ids) para no repetirlos.
+    exclude: Annotated[list[list[UUID]], Field(max_length=50)] = []
     count: Annotated[int, Field(ge=1, le=3)] = 1
 
 

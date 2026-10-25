@@ -4,6 +4,11 @@
 !.env.example
 *.pem
 *.key
+# Llave de firma del APK: vive en los secretos de GitHub y en el respaldo local.
+LLAVE_FIRMA_ANDROID/
+*.p12
+*.jks
+*.keystore
 
 # ─── Python / Backend ─────────────────────────────────
 __pycache__/

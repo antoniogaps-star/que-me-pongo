@@ -138,3 +138,17 @@ def test_vestido_completo_cuenta_como_base() -> None:
     outfit = rules.build_outfit(closet, occasion="cita", projection="Elegante")
     assert outfit is not None
     assert set(outfit.garment_ids) == {"d", "z"}
+
+
+def test_la_mezclilla_cuenta_como_neutro() -> None:
+    """Unos jeans petróleo no son 'el punto de color': combinan con todo."""
+    closet = [
+        {"id": "a", "category": "arriba", "name": "Playera", "color": "gris", "formality": 3},
+        {"id": "b", "category": "abajo", "name": "P.Mezclilla", "color": "petróleo",
+         "formality": 4},
+        {"id": "c", "category": "calzado", "name": "Tenis", "color": "negro", "formality": 3},
+    ]
+    outfit = rules.build_outfit(closet, occasion="dia normal")
+    assert outfit is not None
+    assert "punto de color" not in outfit.explanation
+    assert "neutros" in outfit.explanation

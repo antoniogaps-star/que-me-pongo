@@ -56,10 +56,23 @@ jobs:
         working-directory: mobile
         run: flutter test
 
+      # La llave de firma fija vive en los secretos del repo; sin ella cada APK salía
+      # firmado distinto y Android no dejaba actualizar encima.
+      - name: Llave de firma
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64" || { echo "Falta el secreto ANDROID_KEYSTORE_BASE64"; exit 1; }
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+
       # `--build-number` da un versionCode único por build; sin él Android
       # rechaza reinstalar por "misma versión".
       - name: Compilar APK
         working-directory: mobile
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.p12
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           flutter build apk --release \
             --build-number=${{ github.run_number }} \

@@ -46,6 +46,8 @@ OCCASION_PHRASE: dict[str, str] = {
 NEUTRALS = {
     "negro", "blanco", "gris", "beige", "azul marino", "marino", "cafe", "café", "crema",
     "hueso", "camel", "caqui", "kaki", "mezclilla", "plata",
+    # La mezclilla oscura funciona como neutro aunque su color sea azul.
+    "petroleo", "azul petroleo", "azul oscuro", "denim", "indigo", "azul mezclilla",
 }
 # Colores oscuros: dan autoridad y seriedad.
 DARKS = {"negro", "azul marino", "marino", "gris oscuro", "vino", "cafe", "café", "verde olivo"}
@@ -152,7 +154,11 @@ def _color(g: dict[str, Any]) -> str:
 
 def _is_neutral(g: dict[str, Any]) -> bool:
     c = _color(g)
-    return not c or c in NEUTRALS or any(n in c for n in ("gris", "negro", "blanco", "beige"))
+    if not c or c in NEUTRALS or any(n in c for n in ("gris", "negro", "blanco", "beige")):
+        return True
+    # Un pantalón de mezclilla (jeans) combina con todo, sea cual sea su tono de azul.
+    nombre = _norm(str(g.get("name") or ""))
+    return "mezclilla" in nombre or "jean" in nombre
 
 
 def _is_dark(g: dict[str, Any]) -> bool:

@@ -2,9 +2,20 @@ import 'package:dio/dio.dart';
 
 /// Traduce el error de un intento de login/registro a un mensaje claro y accionable,
 /// para que el usuario sepa QUÉ pasó en vez de solo ver la pantalla de nuevo.
-String authErrorMessage(Object? error, {required bool isRegister}) {
+/// [simple]: cuenta de usuario + fecha de nacimiento (ver simple_account.dart).
+String authErrorMessage(Object? error, {required bool isRegister, bool simple = false}) {
   if (error is DioException) {
     final code = error.response?.statusCode;
+    if (simple && code == 401) {
+      return 'El usuario o la fecha de nacimiento no coinciden.';
+    }
+    if (simple && code == 409) {
+      return 'Ese nombre de usuario ya existe. Si es tuyo, toca "¿Ya tienes cuenta? '
+          'Entrar"; si no, agrégale algo (por ejemplo tu apellido).';
+    }
+    if (simple && code == 422) {
+      return 'Revisa tu nombre de usuario (usa letras o números).';
+    }
     if (code == 401) {
       return 'Correo o contraseña incorrectos para esa empresa.';
     }

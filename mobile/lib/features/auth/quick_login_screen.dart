@@ -7,9 +7,11 @@ import '../billing/pricing_screen.dart';
 import 'auth_errors.dart';
 import 'login_screen.dart';
 import 'reset_password_screen.dart';
+import 'simple_account.dart';
 
-/// Pantalla de entrada rápida (para cuando YA hay una cuenta guardada en el equipo):
-/// muestra la empresa y solo pide la contraseña. Recuadro verde arriba.
+/// Pantalla de entrada rápida (para cuando YA hay una cuenta guardada en el equipo).
+/// Cuenta sencilla: saluda al usuario y solo pide su fecha de nacimiento. Cuenta de
+/// empresa (las anteriores): muestra la empresa y pide la contraseña.
 class QuickLoginScreen extends ConsumerStatefulWidget {
   const QuickLoginScreen({super.key, required this.company, required this.email});
   final String company;
@@ -23,7 +25,10 @@ class _QuickLoginScreenState extends ConsumerState<QuickLoginScreen> {
   final _password = TextEditingController();
   bool _loading = false;
   bool _showPassword = false;
+  DateTime? _birthDate;
   String? _error;
+
+  bool get _simple => isSimpleAccount(widget.email);
 
   @override
   void dispose() {
@@ -32,7 +37,14 @@ class _QuickLoginScreenState extends ConsumerState<QuickLoginScreen> {
   }
 
   Future<void> _entrar() async {
-    final password = _password.text.trim(); // mismo recorte que en el registro
+    final birthDate = _birthDate;
+    if (_simple && birthDate == null) {
+      setState(() => _error = 'Elige tu fecha de nacimiento (día, mes y año).');
+      return;
+    }
+    final password = birthDate != null && _simple
+        ? birthPassword(birthDate)
+        : _password.text.trim(); // mismo recorte que en el registro
     if (password.isEmpty) {
       setState(() => _error = 'Escribe tu contraseña.');
       return;
@@ -49,7 +61,9 @@ class _QuickLoginScreenState extends ConsumerState<QuickLoginScreen> {
           );
       // Éxito: el AuthGate cambia a la app.
     } catch (e) {
-      if (mounted) setState(() => _error = authErrorMessage(e, isRegister: false));
+      if (mounted) {
+        setState(() => _error = authErrorMessage(e, isRegister: false, simple: _simple));
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -81,11 +95,22 @@ class _QuickLoginScreenState extends ConsumerState<QuickLoginScreen> {
               const Text('¿Qué me pongo?',
                   style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF2F6DF6))),
               const SizedBox(height: 16),
-              Text('Empresa: ${widget.company}',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-              Text(widget.email, style: const TextStyle(color: Colors.grey)),
+              if (_simple)
+                Text('Hola, ${widget.company}',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600))
+              else ...[
+                Text('Empresa: ${widget.company}',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text(widget.email, style: const TextStyle(color: Colors.grey)),
+              ],
               const SizedBox(height: 24),
-              TextField(
+              if (_simple)
+                BirthDateField(
+                  enabled: !_loading,
+                  onChanged: (date) => setState(() => _birthDate = date),
+                )
+              else
+                TextField(
                 controller: _password,
                 obscureText: !_showPassword,
                 autofocus: true,
@@ -111,6 +136,7 @@ class _QuickLoginScreenState extends ConsumerState<QuickLoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(_error!, style: const TextStyle(color: Color(0xFFB91C1C))),
+                      if (!_simple) ...[
                       const SizedBox(height: 8),
                       // Si no logra entrar, la vía segura para recuperar el acceso es
                       // ponerle una nueva contraseña (con el secreto de administrador).
@@ -128,6 +154,7 @@ class _QuickLoginScreenState extends ConsumerState<QuickLoginScreen> {
                         icon: const Icon(Icons.lock_reset),
                         label: const Text('Restablecer contraseña y entrar'),
                       ),
+                      ],
                     ],
                   ),
                 ),
@@ -141,6 +168,7 @@ class _QuickLoginScreenState extends ConsumerState<QuickLoginScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+              if (!_simple)
               TextButton(
                 onPressed: _loading
                     ? null
@@ -160,7 +188,7 @@ class _QuickLoginScreenState extends ConsumerState<QuickLoginScreen> {
                     : () => Navigator.of(context).push(
                           MaterialPageRoute<void>(builder: (_) => const LoginScreen()),
                         ),
-                child: const Text('Entrar con otra empresa'),
+                child: Text(_simple ? 'Entrar con otro usuario' : 'Entrar con otra empresa'),
               ),
               const SizedBox(height: 8),
               TextButton(
